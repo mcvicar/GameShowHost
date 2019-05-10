@@ -17,3 +17,7 @@ The team/contestant has one board they control (/teamone, /teamtwo or /teamthree
 
 ## Game questions
 The questions are held in a [json file](public/javascripts/board.json). It uses the exact same format as [mc706/javascript-jeopardy](https://github.com/mc706/javascript-jeopardy), who has built a handy [question creator](http://mc706.github.io/javascript-jeopardy/builder.html).
+
+## Install and running
+Simply clone the repo, run `npm install` and then `DEBUG=game-show-host:* npm start`.
+The gameboard should be available at http://localhost:3000/gameboard
