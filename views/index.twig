@@ -1,0 +1,79 @@
+{% extends 'layout.twig' %}
+
+{% block body %}
+  <div id="answers"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+  <script
+  src="https://code.jquery.com/jquery-3.4.0.min.js"
+  integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg="
+  crossorigin="anonymous"></script>
+  <script>
+    team = '{{team}}';
+    var socket = io.connect('http://localhost:3000/');
+    var stdmap;
+    var stdcategory;
+    var stdquestion;
+    var stdround;
+
+    $(function () {
+      socket.on('connect', function() {
+        socket.emit('room', team);
+      });
+
+      socket.on('show question', function(map, category, question, teamQuestioned, round){
+        stdmap = map;
+        stdcategory = category
+        stdquestion = question;
+        stdround = round
+        if(team == teamQuestioned) {
+          var answers = $('#answers');
+          var value = map[category].questions[question].value;
+
+          $.each(map[category].questions[question].answers, function(i, answer){
+            answers.append(
+              '<div class="row"><button class="btn btn-danger answer" ' +
+                  'data-category="'+category+'"' +
+                  'data-question="'+question+'"' +
+                  'data-value="'+value+'"' +
+                  'data-correct="'+answer.correct+'"' +
+                  '>'+ answer.text+'</button><hr></div>'
+            )
+          });
+          handleAnswer();
+        }
+      });
+
+      function handleAnswer(){
+        $('.answer').click(function(){
+            console.log(stdround);
+            var tile= $('div[data-category="'+$(this).data('category')+'"]>[data-question="'+$(this).data('question')+'"]')[0];
+            $(tile).empty().removeClass('unanswered').unbind().css('cursor','not-allowed');
+            if ($(this).data('correct')){
+              socket.emit('team correct answer', team, $(this).data('value'), $(this).text());
+            } else if ($(this).data('correct') == false && stdround == 1) {
+              console.log("that was wrong");
+
+              switch (team) {
+                case 'teamone':
+                  socket.emit('team question', stdmap, stdcategory, stdquestion, "teamtwo", 2);
+                  socket.emit('team question', stdmap, stdcategory, stdquestion, "teamthree", 2);
+                  break;
+                case 'teamtwo':
+                  socket.emit('team question', stdmap, stdcategory, stdquestion, "teamone", 2);
+                  socket.emit('team question', stdmap, stdcategory, stdquestion, "teamthree", 2);
+                  break;
+                case 'teamthree':
+                  socket.emit('team question', stdmap, stdcategory, stdquestion, "teamone", 2);
+                  socket.emit('team question', stdmap, stdcategory, stdquestion, "teamtwo", 2);
+                  break;
+              }
+            }
+            $( ".btn" ).remove();
+            $( "hr" ).remove();
+            // Remove the buttons..
+        })
+      }
+
+    });
+  </script>
+{% endblock %}

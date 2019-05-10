@@ -1,0 +1,72 @@
+{% extends 'layout.twig' %}
+
+{% block body %}
+  <ul id="scores">
+    <li id="teamone"></li>
+    <li id="teamtwo"></li>
+    <li id="teamthree"></li>
+  </ul>
+
+  <div id="gameboard">
+    <form action="">
+      <button>Show gameboard</button>
+    </form>
+  </div>
+
+  <div id="board">
+  <h2>Give them a question</h2>
+    <select id="team-question">
+      <option value="teamone">teamone</option>
+      <option value="teamtwo">teamtwo</option>
+      <option value="teamthree">teamthree</option>
+    </select>
+    <div class="panel-heading"></div>
+    <div id="main-board"></div>
+  </div>
+
+  <div class="clearfix"></div>
+
+  <div id="penalty">
+  <h2>Penalty!</h2>
+  <form action="">
+    <select id="team">
+      <option value="teamone">teamone</option>
+      <option value="teamtwo">teamtwo</option>
+      <option value="teamthree">teamthree</option>
+    </select>
+    <input id="m" autocomplete="off" /><button>Send</button>
+  </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+  <script src="/javascripts/board.js"></script>
+  <script>
+    team = '{{team}}';
+    var socket = io.connect('http://localhost:3000/');
+
+    $(function () {
+
+      socket.on('connect', function() {
+         socket.emit('room', team);
+      });
+
+      socket.on('update score', function(team, score){
+        $('#'+team).text(score);
+      });
+
+      $('#gameboard form').submit(function(){
+        socket.emit('show board');
+        return false;
+      });
+
+      $('#penalty form').submit(function(){
+        var test = $('#m').val();
+        var team = $('#team').val();
+        socket.emit('team penalty', test, team);
+        $('#m').val('');
+        return false;
+      });
+    });
+  </script>
+{% endblock %}

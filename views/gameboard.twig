@@ -1,0 +1,73 @@
+{% extends 'layout.twig' %}
+
+{% block body %}
+  <div id="board">
+      <div class="panel panel-default">
+          <div class="panel-heading"></div>
+          <div class="panel-body" id="main-board">
+          </div>
+      </div>
+  </div>
+  <div id="scores">
+    <div class="well well-lg">
+    <ul class="lead">
+      <li>Team One: <span id="teamone"></span></li>
+      <li>Team Two: <span id="teamtwo"></span></li>
+      <li>Team Three: <span id="teamthree"></span></li>
+    </ul>
+    </div>
+  </div>
+  <div id="question">
+  <div class="well">
+    <h4 id="cat-title"><i>Category title</i></h4>
+    <p id="cat-question" style="font-size: 1.5em">A question..</p>
+  </div>
+  </div>
+  <div id="answer" class="well"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+  <script
+src="https://code.jquery.com/jquery-3.4.0.min.js"
+integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg="
+crossorigin="anonymous"></script>
+  <script src="/javascripts/board.js"></script>
+  <script>
+    team = '{{team}}';
+    var socket = io.connect('http://localhost:3000/');
+
+    $(function () {
+      $("#question").hide();
+      $("#answer").hide();
+      $("#scores").hide();
+
+      socket.on('connect', function() {
+         socket.emit('room', team);
+      });
+
+      socket.on('show scores', function(scores){
+        $("#teamone").text(scores.teamone.Score);
+        $("#teamtwo").text(scores.teamone.Score);
+        $("#teamthree").text(scores.teamone.Score);
+        $("#scores").show();
+        $("#board").hide();
+        $("#answer").hide();
+      });
+
+      socket.on('show answer', function(answer){
+        $("#scores").hide();
+        $("#question").hide();
+        $("#answer").text(answer);
+      });
+
+      socket.on('show question', function(map, category, question, team, round){
+        $("#board").hide();
+        $("#question").show();
+        $("#scores").hide();  
+        $('#cat-title').empty().text(map[category].name);
+        $('#cat-question').empty().text(map[category].questions[question].question);
+        selection.removeClass("unanswered");
+      });
+    });
+  </script>
+
+{% endblock %}
